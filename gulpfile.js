@@ -2,14 +2,15 @@
 
 const gulp = require("gulp");
 const sass = require("gulp-sass")(require("sass"));
-const plumber = require('gulp-plumber')
+const plumber = require('gulp-plumber');
+const purgecss = require("gulp-purgecss");
 const cleanCSS = require("gulp-clean-css");
 const autoprefixer = require("gulp-autoprefixer");
 const notify = require('gulp-notify');
 const rename = require("gulp-rename");
-const error_handler = {
-    errorHandler: notify.onError("Error: <%= error.message %>")
-}
+// const error_handler = {
+//     errorHandler: notify.onError("Error: <%= error.message %>")
+// }
 
 const webpackStream = require('webpack-stream')
 const webpack = require('webpack')
@@ -24,11 +25,16 @@ function scss() {
     return gulp.src('./src/scss/style.scss', {
             sourcemaps: true
         })
-        .pipe(plumber(error_handler))
+        .pipe(plumber({
+            errorHandler: notify.onError("Error: <%= error.message %>") 
+        }))
         .pipe(sass().on('error', sass.logError))
         .pipe(autoprefixer(['last 2 versions', 'ie >= 10', 'Android >= 4', 'iOS >= 8']))
         .pipe(gulp.dest('./public/css/', {
             sourcemaps: './map/'
+        }))
+        .pipe(purgecss({
+            content: ["./src/*.html", "./src/**/*.js"],
         }))
         .pipe(cleanCSS())
         .pipe(rename({
@@ -36,6 +42,7 @@ function scss() {
         }))
         .pipe(gulp.dest('./public/css/'));
 }
+
 
 function js() {
     return gulp.src('./src/js/*.js')
